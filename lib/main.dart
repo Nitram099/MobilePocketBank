@@ -10,6 +10,7 @@ import 'pages/bank_transfer.dart';
 import 'pages/deposit.dart';
 import 'pages/savings_page.dart'; // Import for SavingsPage
 import 'pages/loan_page.dart';     // Import for LoanPage
+import 'pages/Achievements.dart'; 
 import 'pages/account_page.dart';   // Import for AccountPage
 
 void main() {
@@ -37,6 +38,7 @@ class PocketBankingApp extends StatelessWidget {
         '/deposit': (context) => DepositPage(),
         '/savings': (context) => SavingsPage(), // Route for SavingsPage
         '/loans': (context) => LoanPage(),       // Route for LoanPage
+        //'/Achievements': (context) => AchievementsPage(),
         '/account': (context) => AccountPage(),   // Route for AccountPage
       },
     );
