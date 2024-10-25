@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 
 class Gamification {
   // Initialize non-nullable instances with default values

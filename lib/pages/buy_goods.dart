@@ -1,29 +1,61 @@
 import 'package:flutter/material.dart';
-import 'package:pocket_banking/widgets/mpesa_access_token.dart';
+import 'package:mpesa_flutter_plugin/mpesa_flutter_plugin.dart';
 
 // Defining the SendMoneyPage class
-class SendMoneyPage extends StatefulWidget {
-  const SendMoneyPage({super.key});
+class BuyGoodsPage extends StatefulWidget {
+  const BuyGoodsPage({super.key});
 
   @override
   _SendMoneyPageState createState() => _SendMoneyPageState();
 }
 
-class _SendMoneyPageState extends State<SendMoneyPage> {
+class _SendMoneyPageState extends State<BuyGoodsPage> {
   // Controllers to manage the input fields
-  final TextEditingController recipientController =
-      TextEditingController(); // Controller for recipient's number input
-  final TextEditingController amountController =
-      TextEditingController(); // Controller for amount input
+  final TextEditingController recipientController = TextEditingController();
+  final TextEditingController amountController = TextEditingController();
 
   // Form key to manage validation
   final _formKey = GlobalKey<FormState>();
+
+  // transaction function
+  Future<dynamic> startTransaction(
+      {required double amount, required String recipient}) async {
+    dynamic transactionInitialisation;
+
+    //Wrap it with a try-catch
+    try {
+      //Run it
+      transactionInitialisation =
+          await MpesaFlutterPlugin.initializeMpesaSTKPush(
+              businessShortCode:
+                  "174379", //use your store number if the transaction type is CustomerBuyGoodsOnline
+              transactionType: TransactionType
+                  .CustomerPayBillOnline, //or CustomerBuyGoodsOnline for till numbers
+              amount: amount,
+              partyA: recipient,
+              partyB: "174379",
+              callBackURL: Uri(
+                  scheme: "https",
+                  host: "1234.1234.co.ke",
+                  path: "/1234.php"), //send the data to the backend
+              accountReference: "solomon ondula payment API testings",
+              phoneNumber: recipient,
+              baseUri: Uri(scheme: "https", host: "sandbox.safaricom.co.ke"),
+              transactionDesc: "testing transactions",
+              passKey:
+                  "bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919");
+
+      print("result: $transactionInitialisation");
+    } catch (e) {
+      print(e);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Send Money'), // Title displayed in the AppBar
+        title: const Text('Buy Goods'), // Title displayed in the AppBar
         backgroundColor: Colors.teal, // Background color of the AppBar
       ),
       body: Container(
@@ -48,7 +80,7 @@ class _SendMoneyPageState extends State<SendMoneyPage> {
                       recipientController, // Connect the controller to the input field
                   decoration: const InputDecoration(
                     labelText:
-                        'Recipient\'s Number', // Label displayed in the input field
+                        'Buyer\'s Number', // Label displayed in the input field
                     border:
                         OutlineInputBorder(), // Outline border style for the input field
                   ),
@@ -95,43 +127,16 @@ class _SendMoneyPageState extends State<SendMoneyPage> {
                 ElevatedButton(
                   onPressed: () async {
                     if (_formKey.currentState!.validate()) {
+                      double amount = double.parse(amountController.text);
                       String recipient = recipientController.text;
-                      String amount = amountController.text;
 
-                      // Format the recipient phone number
-                      String? formattedRecipient = formatPhoneNumber(recipient);
-
-                      if (formattedRecipient == null) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                              content:
-                                  Text('Please enter a valid phone number')),
-                        );
-                        return; // Exit if the number is invalid
+                      // Format the recipient number to include country code if necessary
+                      if (recipient.startsWith('0')) {
+                        recipient = '254${recipient.substring(1)}';
                       }
 
-                      // Get M-Pesa access token
-                      String? accessToken = await getMpesaAccessToken();
-
-                      if (accessToken != null) {
-                        // Initiate payment
-                        await initiateMpesaSTKPush(
-                          accessToken: accessToken,
-                          recipient: formattedRecipient,
-                          amount: amount,
-                        );
-
-                        // Show success message
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                          content:
-                              Text('Sending $amount to $formattedRecipient'),
-                        ));
-                      } else {
-                        // Show error message
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                          content: Text('Failed to get access token'),
-                        ));
-                      }
+                      await startTransaction(
+                          amount: amount, recipient: recipient);
                     }
                   },
                   style: ElevatedButton.styleFrom(
@@ -140,7 +145,7 @@ class _SendMoneyPageState extends State<SendMoneyPage> {
                         horizontal: 32.0, vertical: 16.0),
                   ),
                   child: Text(
-                    'Send Money',
+                    'Buy Goods',
                     style: TextStyle(color: Colors.white),
                   ),
                 ),
